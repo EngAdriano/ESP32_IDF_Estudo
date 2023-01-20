@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 
 #define PIN (2)
+#define BT_PIN (34)
 
 
 void app_main() 
@@ -14,12 +15,15 @@ void app_main()
     esp_rom_gpio_pad_select_gpio(PIN);
     gpio_set_direction(PIN, GPIO_MODE_OUTPUT);
 
+    esp_rom_gpio_pad_select_gpio(BT_PIN);
+    gpio_set_direction(BT_PIN, GPIO_MODE_INPUT);
+
     bool status = true;
 
     while(true)
     {
-        status = !status;
+        status = gpio_get_level(BT_PIN);        //Ler o pino BT_PIN (gpio34)
         gpio_set_level(PIN, status);
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
