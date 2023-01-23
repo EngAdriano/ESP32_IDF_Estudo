@@ -1,21 +1,34 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
-#include "freertos/Task.h"
-#include "driver/gpio.h"
+#include "freertos/task.h"
 
-#define PIN 2
+//Variáveis/Handles
+static TaskHandle_t taskHandler = NULL;             //Inicialização de um Handller
+
+//Protótipo das funções/Tasks
+void Task1(void * params);
+void Task2(void * params);
 
 void app_main(void)
 {
-    esp_rom_gpio_pad_select_gpio(PIN);
-    gpio_set_direction(PIN, GPIO_MODE_OUTPUT);
+    xTaskCreate(&Task1, "Task1", 2048, NULL, 2, &taskHandler);
+    xTaskCreate(&Task2, "Task2", 2048, NULL, 2, &taskHandler);
+}
 
-    bool status = true;
-
+void Task1(void * params)
+{
     while(true)
     {
-        status = !status;
-        gpio_set_level(PIN, status);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        xTaskNotifyGive(taskHandler);               //Função para o envio de notificação
+        vTaskDelay(2000 / portTICK_PERIOD_MS);      //2 segundos de delay para que possamos acompanhar a execução do envio da notificação
+    }
+}
+
+void Task2(void * params)
+{
+    while(true)
+    {
+        int counter = ulTaskNotifyTake(pdFALSE, portMAX_DELAY);   //primeiro campo não apagar o histórico de notificações, segundo campo esperar até o tempo máximo
+        printf("Notificação recebida %d ", counter);
     }
 }
